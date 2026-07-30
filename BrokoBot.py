@@ -24,7 +24,7 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 
 @bot.event
 async def on_ready():
-    autothread = False
+    autothread = True
     print("Bot is ready!")
 
 @bot.event
@@ -32,6 +32,12 @@ async def on_message(msg):
     if msg.author.id != bot.user.id and msg.content == "Davinki":
         channel = bot.get_channel(msg.channel.id)
         await msg.reply("Davinki?")
+
+    #1526833802083569694    
+    if autothread:
+        if msg.author.id != bot.user.id and msg.channel.id ==  1532199847048773746:
+            await msg.create_thread(name=msg.attachments[0].filename if msg.attachments else msg.content[:50])
+            await msg.thread.send(f"Discuss ya bull here:")
 
     if bot.user.mentioned_in(msg):
             await msg.reply("You mentioned me?")
