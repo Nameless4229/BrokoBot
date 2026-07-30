@@ -25,6 +25,7 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 @bot.event
 async def on_ready():
     autothread = False
+    print("Bot is ready!")
 
 #@bot.event
 #async def on_message(msg):
