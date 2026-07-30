@@ -34,10 +34,7 @@ async def on_ready():
         ##await msg.create_thread(name=msg.author.display_name)
 
 
-@bot.event
-async def on_message(msg):
-    if msg.author.id != bot.user.id:
-        await msg.channel.send(f"{'Davinki?' if msg.content == 'Davinki'}")
+
 
 @bot.tree.command(name="hello", description="Says hello to the user")
 async def hello(interaction: discord.Interaction):
