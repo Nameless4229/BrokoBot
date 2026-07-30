@@ -27,14 +27,17 @@ async def on_ready():
     autothread = False
     print("Bot is ready!")
 
-#@bot.event
-#async def on_message(msg):
-    #if msg.author.id != bot.user.id:
-        #channel = bot.get_channel(msg.channel.id)
-        ##await msg.create_thread(name=msg.author.display_name)
+@bot.event
+async def on_message(msg):
+    if msg.author.id != bot.user.id and msg.content == "Davinki":
+        channel = bot.get_channel(msg.channel.id)
+        await msg.reply("Davinki?")
 
+    if bot.user.mentioned_in(msg):
+            await msg.reply("You mentioned me?")
 
-
+    if msg.content == "what":
+        await msg.reply("What?")
 
 @bot.tree.command(name="hello", description="Says hello to the user")
 async def hello(interaction: discord.Interaction):
