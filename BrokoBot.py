@@ -3,6 +3,11 @@ import discord
 from discord.ext import commands
 from discord import app_commands
 from dotenv import load_dotenv
+import asyncio
+
+#for requirements.txt
+#import Flask
+#from threading import Thread
 
 from keep_alive import keep_alive
 
