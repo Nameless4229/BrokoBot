@@ -100,6 +100,7 @@ async def on_reaction_remove(reaction, user):
         return
 
     if reaction.message.id != variables.main_role_message_id:
+        print("test")
         return
 
     emoji = str(reaction.emoji)
