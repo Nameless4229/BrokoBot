@@ -11,6 +11,8 @@ import asyncio
 
 from keep_alive import keep_alive
 
+import variables
+
 load_dotenv()
 TOKEN = os.getenv("DISCORD_TOKEN")
 
@@ -56,7 +58,13 @@ async def on_reaction_add(reaction, user):
     if not guild:
         return
 
-    if hasattr("colour_role_message_id", "bot") and reaction.message.id != bot.colour_role_message_id:
+    if variables.main_role_message_id is None:
+        return
+
+    if reaction.message.id != variables.main_role_message_id:
+        return
+
+    if hasattr("main_role_message_id", "bot") and reaction.message.id != variables.main_role_message_id:
         return
 
     emoji = str(reaction.emoji)
@@ -76,8 +84,10 @@ async def on_reaction_add(reaction, user):
             await user.add_roles(role)
             print(f"Assigned {role_name} role to {user}.")
 
+    # Currently, tweaking this line
     else:
         await reaction.remove(user)
+        print("Reaction removed: User tried to react with an invalid emoji.")
 
 @bot.event
 async def on_reaction_remove(reaction, user):
@@ -89,7 +99,7 @@ async def on_reaction_remove(reaction, user):
     if not guild:
         return
 
-    if hasattr("colour_role_message_id", "bot") and reaction.message.id != bot.colour_role_message_id:
+    if hasattr("colour_role_message_id", "bot") and reaction.message.id != variables.main_role_message_id:
         return
 
     emoji = str(reaction.emoji)
@@ -135,7 +145,7 @@ async def main_roles(interaction: discord.Interaction):
     for emoji in emojis:
         await message.add_reaction(emoji)
 
-    bot.colour_role_message_id = message.id
+    variables.main_role_message_id = message.id
 
     await interaction.followup.send("Role assignment message sent!", ephemeral=True)
 
