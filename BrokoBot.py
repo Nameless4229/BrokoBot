@@ -139,4 +139,36 @@ async def main_roles(interaction: discord.Interaction):
 
     await interaction.followup.send("Role assignment message sent!", ephemeral=True)
 
+@bot.tree.command(name="suspend", description="Suspends the ability to message in a channel, so that an update can be pushed correctly")
+async def suspend(interaction: discord.Interaction):
+    # Check admin
+    if not interaction.user.guild_permissions.administrator:
+        await interaction.response.send_message("You do not have permission to use this command.", ephemeral=True)
+        return
+
+    global overwrites
+    overwrites = interaction.channel.overwrites_for(interaction.guild.default_role)
+    overwrites.send_messages = False
+    
+    await interaction.channel.set_permissions(interaction.guild.default_role, overwrite=overwrites)
+    
+    await interaction.response.send_message(f"Suspended the ability to message in {interaction.channel.mention}", ephemeral=True)
+    await interaction.channel.send("## The ability to message in this channel has been ***suspended***.\n### Please wait for an update to be pushed before messaging again.")
+
+@bot.tree.command(name="unsuspend", description="Unsuspends the ability to message in a channel")
+async def unsuspend(interaction: discord.Interaction):
+    # Check admin
+    if not interaction.user.guild_permissions.administrator:
+        await interaction.response.send_message("You do not have permission to use this command.", ephemeral=True)
+        return
+
+    global overwrites
+    overwrites = interaction.channel.overwrites_for(interaction.guild.default_role)
+    overwrites.send_messages = True
+    
+    await interaction.channel.set_permissions(interaction.guild.default_role, overwrite=overwrites)
+    
+    await interaction.response.send_message(f"Unsuspended the ability to message in {interaction.channel.mention}", ephemeral=True)
+    await interaction.channel.send("## The ability to message in this channel has been ***unsuspended***.\n### You can now message again.")
+
 bot.run(TOKEN)
