@@ -1,2 +1,1 @@
-global main_role_message_id
 main_role_message_id = 1533317903758135377  # Channel ID for #role-select

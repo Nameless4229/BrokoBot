@@ -2,6 +2,7 @@ import os
 import discord
 from discord.ext import commands
 from discord import app_commands
+from discord.utils import get
 from dotenv import load_dotenv
 import asyncio
 
@@ -49,25 +50,20 @@ async def on_message(msg):
         await msg.reply("What?")
 
 @bot.event
-async def on_reaction_add(reaction, user):
-    if user.bot:
+async def on_raw_reaction_add(payload):
+    channel = bot.get_channel(payload.channel_id)
+    message = await channel.fetch_message(payload.message_id)
+
+    guild_id = payload.guild_id
+    guild = bot.get_guild(guild_id)
+
+    if payload.member == bot.user:
         return
 
-    guild = reaction.message.guild
-
-    if not guild:
+    if payload.message_id != variables.main_role_message_id:
         return
 
-    if variables.main_role_message_id is None:
-        return
-
-    if reaction.message.id != variables.main_role_message_id:
-        return
-
-    if hasattr("main_role_message_id", "bot") and reaction.message.id != variables.main_role_message_id:
-        return
-
-    emoji = str(reaction.emoji)
+    emoji = str(payload.emoji)
 
     reaction_role_map = {
         "🎵": "PROD",
@@ -78,32 +74,34 @@ async def on_reaction_add(reaction, user):
 
     if emoji in reaction_role_map:
         role_name = reaction_role_map[emoji]
-        role = discord.utils.get(guild.roles, name=role_name)
+        role = get(payload.member.guild.roles, name=role_name)
 
-        if role and user:
-            await user.add_roles(role)
-            print(f"Assigned {role_name} role to {user}.")
+        if role and payload.member:
+            await payload.member.add_roles(role)
+            print(f"Assigned {role_name} role to {payload.member}.")
 
     # Currently, tweaking this line
     else:
-        await reaction.remove(user)
+        await message.remove_reaction(payload.emoji, payload.member)
         print("Reaction removed: User tried to react with an invalid emoji.")
 
 @bot.event
-async def on_reaction_remove(reaction, user):
-    if user.bot:
+async def on_raw_reaction_remove(payload):
+    channel = bot.get_channel(payload.channel_id)
+    message = await channel.fetch_message(payload.message_id)
+
+    guild_id = payload.guild_id
+    guild = bot.get_guild(payload.guild_id)
+
+    payload.member = guild.get_member(payload.user_id)
+
+    if payload.member == bot.user:
         return
 
-    guild = reaction.message.guild
-
-    if not guild:
+    if payload.message_id != variables.main_role_message_id:
         return
 
-    if reaction.message.id != variables.main_role_message_id:
-        print("test")
-        return
-
-    emoji = str(reaction.emoji)
+    emoji = str(payload.emoji)
 
     reaction_role_map = {
         "🎵": "PROD",
@@ -114,11 +112,11 @@ async def on_reaction_remove(reaction, user):
 
     if emoji in reaction_role_map:
         role_name = reaction_role_map[emoji]
-        role = discord.utils.get(guild.roles, name=role_name)
+        role = get(guild.roles, name=role_name)
 
-        if role and user:
-            await user.remove_roles(role)
-            print(f"Removed {role_name} role from {user}.")
+        if role and payload.member:
+            await payload.member.remove_roles(role)
+            print(f"Removed {role_name} role from {payload.member}.")
 
 @bot.tree.command(name="main_roles", description="Lets user assign themselves a role automatically")
 async def main_roles(interaction: discord.Interaction):
