@@ -99,7 +99,13 @@ async def on_reaction_remove(reaction, user):
     if not guild:
         return
 
-    if hasattr("colour_role_message_id", "bot") and reaction.message.id != variables.main_role_message_id:
+    if variables.main_role_message_id is None:
+            return
+
+    if reaction.message.id != variables.main_role_message_id:
+            return
+
+    if hasattr("main_role_message_id", "bot") and reaction.message.id != variables.main_role_message_id:
         return
 
     emoji = str(reaction.emoji)
