@@ -3,8 +3,12 @@ import discord
 from discord.ext import commands
 from discord import app_commands
 from discord.utils import get
-from dotenv import load_dotenv
+
 import asyncio
+
+from dotenv import load_dotenv
+load_dotenv()
+TOKEN = os.getenv("DISCORD_TOKEN")
 
 #for requirements.txt
 #import Flask
@@ -13,9 +17,6 @@ import asyncio
 from keep_alive import keep_alive
 
 import variables
-
-load_dotenv()
-TOKEN = os.getenv("DISCORD_TOKEN")
 
 keep_alive()
 
@@ -26,15 +27,17 @@ intents.reactions = True
 intents.guilds = True
 intents.members = True
 
-bot = commands.Bot(command_prefix="$", intents=intents)
+bot = commands.Bot(command_prefix="?", intents=intents)
 
 GUILD_ID = 721200830253891594  # Replace with your server's ID
 
 @bot.event
 async def on_ready():
-    await bot.tree.sync()
     global autothread
     autothread = True
+    global message_sender
+    message_sender = None
+    await bot.tree.sync()
     print("Bot is ready!")
 
 @bot.event
@@ -49,6 +52,10 @@ async def on_message(msg):
     if msg.content == "what":
         await msg.reply("What?")
 
+    # For if BrandowBando pisses me off lol
+    #if msg.author.id == 308349528094933026:
+        #await msg.reply("Feck you bih")
+
 @bot.event
 async def on_raw_reaction_add(payload):
     channel = bot.get_channel(payload.channel_id)
@@ -60,7 +67,7 @@ async def on_raw_reaction_add(payload):
     if payload.member == bot.user:
         return
 
-    if payload.message_id != variables.main_role_message_id:
+    if payload.channel_id != variables.role_select_channel_id:
         return
 
     emoji = str(payload.emoji)
@@ -69,7 +76,8 @@ async def on_raw_reaction_add(payload):
         "🎵": "PROD",
         "⌨️": "GAMER",
         "💅": "CHATTER",
-        "🟩": "MC"
+        "🟩": "MC",
+        "🟥": "18+"
     }
 
     if emoji in reaction_role_map:
@@ -80,7 +88,6 @@ async def on_raw_reaction_add(payload):
             await payload.member.add_roles(role)
             print(f"Assigned {role_name} role to {payload.member}.")
 
-    # Currently, tweaking this line
     else:
         await message.remove_reaction(payload.emoji, payload.member)
         print("Reaction removed: User tried to react with an invalid emoji.")
@@ -98,7 +105,7 @@ async def on_raw_reaction_remove(payload):
     if payload.member == bot.user:
         return
 
-    if payload.message_id != variables.main_role_message_id:
+    if payload.channel_id != variables.role_select_channel_id:
         return
 
     emoji = str(payload.emoji)
@@ -107,7 +114,8 @@ async def on_raw_reaction_remove(payload):
         "🎵": "PROD",
         "⌨️": "GAMER",
         "💅": "CHATTER",
-        "🟩": "MC"
+        "🟩": "MC",
+        "🟥": "18+"
     }
 
     if emoji in reaction_role_map:
@@ -117,6 +125,11 @@ async def on_raw_reaction_remove(payload):
         if role and payload.member:
             await payload.member.remove_roles(role)
             print(f"Removed {role_name} role from {payload.member}.")
+
+@bot.hybrid_command(name="tts", with_app_command=True, description="Makes the message Text-To-Speech")
+#@app_commands.guilds(discord.Object(id = 721200830253891594))
+async def tts(ctx: commands.Context, message):
+    await ctx.reply(message, tts=True)
 
 @bot.tree.command(name="main_roles", description="Lets user assign themselves a role automatically")
 async def main_roles(interaction: discord.Interaction):
@@ -145,6 +158,32 @@ async def main_roles(interaction: discord.Interaction):
         await message.add_reaction(emoji)
 
     variables.main_role_message_id = message.id
+
+    await interaction.followup.send("Role assignment message sent!", ephemeral=True)
+
+@bot.tree.command(name="age_role", description="Lets people select the 18+ role for themselves, probably going to be depreciated soon")
+async def age_role(interaction: discord.Interaction):
+    # Check admin
+    if not interaction.user.guild_permissions.administrator:
+        await interaction.response.send_message("You do not have permission to use this command.", ephemeral=True)
+        return
+
+    await interaction.response.defer(ephemeral=True)
+
+    description = (
+        "React to this message with the corresponding emoji to assign yourself a role:\n\n"
+        "🟥\n**18+**\n*You're not a minor*"
+    )
+
+    embed = discord.Embed(title="Age role", description=description, color=discord.Color.red())
+    message = await interaction.channel.send(embed=embed)
+
+    emojis = ["🟥"]
+
+    for emoji in emojis:
+        await message.add_reaction(emoji)
+
+    variables.age_role_message_id = message.id
 
     await interaction.followup.send("Role assignment message sent!", ephemeral=True)
 

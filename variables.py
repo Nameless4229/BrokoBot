@@ -1,1 +1,2 @@
-main_role_message_id = 1533317903758135377  # Channel ID for #role-select
+role_select_channel_id = 1533303745587318794
+main_role_message_id = 1533317903758135377
